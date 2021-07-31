@@ -1,3 +1,7 @@
+#Gestion de modelo
+#===========================================================================
+import pickle
+
 # Gráficos
 # ==============================================================================
 import matplotlib.pyplot as plt
@@ -8,7 +12,19 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-
+# Preprocesado y modelado
+# ==============================================================================
+from scipy.stats import pearsonr
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
+from scipy import stats
+from sklearn import preprocessing
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import metrics
 # Configuración matplotlib
 # ==============================================================================
 plt.rcParams['image.cmap'] = "bwr"
@@ -95,6 +111,9 @@ def ver_correlacion(df):
     
     
 from scipy.optimize import curve_fit
+
+
+
 ######## Funcion para aplicar Un modelo No lineal df= Dataframe a analizar;columnX=Nombre dela columna eje X;columnY=nombre de la columna eje Y
 ########funcion("sigmoide","logaritmica","cuadratrica")
 ########Entrega Grafica de el modelo y  entrega evaluzacion del Modelo 
@@ -165,8 +184,15 @@ def AplicarModeloNolineal(df,columnX,columnY,funcion):
         # predecir utilizando el set de prueba
         y_hat = expone(test_x, *popt)
         y_grafico=expone(xdata, *popt)
-
+        
+    
     # evaluation
+    print("""  ___  ____    __    ____  ____   ___    __     ___  ____  _____  _  _ 
+ / __)(  _ \  /__\  ( ___)(_  _) / __)  /__\   / __)(_  _)(  _  )( \( )
+( (_-. )   / /(  )\  )__)  _)(_ ( (__  /(  )\ ( (__  _)(_  )(_)(  )  ( 
+ \___/(_)\_)(__)(__)(_)   (____) \___)(__)(__) \___)(____)(_____)(_)\_)
+""")
+
     print("Promedio de error absoluto: %.2f" % np.mean(np.absolute(y_hat - test_y)))
     print("Suma residual de cuadrados (MSE): %.2f" % np.mean((y_hat - test_y) ** 2))
     from sklearn.metrics import r2_score
@@ -180,6 +206,99 @@ def AplicarModeloNolineal(df,columnX,columnY,funcion):
     plt.ylabel("%s"%columnY)
     plt.xlabel("%s"%columnX)
     plt.show()
+    # Diagnóstico de los resíduos
+    # ==============================================================================
+    
+    print(""" ____   ____    __     ___  _  _  _____  ___  ____  ____   ___  _____ 
+(  _ \ (_  _)  /__\   / __)( \( )(  _  )/ __)(_  _)(_  _) / __)(  _  )
+ )(_) ) _)(_  /(  )\ ( (_-. )  (  )(_)( \__ \  )(   _)(_ ( (__  )(_)( 
+(____/ (____)(__)(__) \___/(_)\_)(_____)(___/ (__) (____) \___)(_____)
+""")
+    y_train = y_data
+    prediccion_train = y_grafico*max(y_data)
+    residuos_train   = prediccion_train - y_train
+    
+    # Gráficos De Diagnosticos
+    # ==============================================================================
+    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(9, 8))
+
+    axes[0, 0].scatter(y_train, prediccion_train, edgecolors=(0, 0, 0), alpha = 0.4)
+    axes[0, 0].plot([y_train.min(), y_train.max()], [y_train.min(), y_train.max()],
+                    'k--', color = 'black', lw=2)
+    axes[0, 0].set_title('Valor predicho vs valor real', fontsize = 10, fontweight = "bold")
+    axes[0, 0].set_xlabel('Real')
+    axes[0, 0].set_ylabel('Predicción')
+    axes[0, 0].tick_params(labelsize = 7)
+
+    axes[0, 1].scatter(list(range(len(y_train))), residuos_train,
+                       edgecolors=(0, 0, 0), alpha = 0.4)
+    axes[0, 1].axhline(y = 0, linestyle = '--', color = 'black', lw=2)
+    axes[0, 1].set_title('Residuos del modelo', fontsize = 10, fontweight = "bold")
+    axes[0, 1].set_xlabel('id')
+    axes[0, 1].set_ylabel('Residuo')
+    axes[0, 1].tick_params(labelsize = 7)
+
+    sns.histplot(
+        data    = residuos_train,
+        stat    = "density",
+        kde     = True,
+        line_kws= {'linewidth': 1},
+        color   = "firebrick",
+        alpha   = 0.3,
+        ax      = axes[1, 0]
+    )
+
+    axes[1, 0].set_title('Distribución residuos del modelo', fontsize = 10,
+                         fontweight = "bold")
+    axes[1, 0].set_xlabel("Residuo")
+    axes[1, 0].tick_params(labelsize = 7)
+
+
+    sm.qqplot(
+        residuos_train,
+        fit   = True,
+        line  = 'q',
+        ax    = axes[1, 1], 
+        color = 'firebrick',
+        alpha = 0.4,
+        lw    = 2
+    )
+    axes[1, 1].set_title('Q-Q residuos del modelo', fontsize = 10, fontweight = "bold")
+    axes[1, 1].tick_params(labelsize = 7)
+
+    axes[2, 0].scatter(prediccion_train, residuos_train,
+                       edgecolors=(0, 0, 0), alpha = 0.4)
+    axes[2, 0].axhline(y = 0, linestyle = '--', color = 'black', lw=2)
+    axes[2, 0].set_title('Residuos del modelo vs predicción', fontsize = 10, fontweight = "bold")
+    axes[2, 0].set_xlabel('Predicción')
+    axes[2, 0].set_ylabel('Residuo')
+    axes[2, 0].tick_params(labelsize = 7)
+
+    # Se eliminan los axes vacíos
+    fig.delaxes(axes[2,1])
+
+    fig.tight_layout()
+    plt.subplots_adjust(top=0.9)
+    fig.suptitle('Diagnóstico residuos', fontsize = 12, fontweight = "bold");
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     return [popt,max(x_data),max(y_data),funcion]
 
 def PredecirConModeloNolineal(df,columnX,popt,mx,my,funcion):
@@ -213,5 +332,66 @@ def PredecirConModeloNolineal(df,columnX,popt,mx,my,funcion):
     plt.show()
     return pd.DataFrame({"%s"%columnX:x_data,"prediccion":y_grafico})
         
+     
+def MiMejorVecino(datos,etiqueta,Ks):
+    columnas=datos.select_dtypes(include=['float64', 'int','int64']).columns.values
+    print("columnas Usadasparael modelo :%s"%columnas)
+    print("columnas etiqueta modelo :%s"%etiqueta)
+    XDatos=datos[columnas]
+    Y_etiqueta=datos[etiqueta].values
+    ###################################################################################
+    XDatos = preprocessing.StandardScaler().fit(XDatos).transform(XDatos.astype(float))
+    #############################################################################################
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split( XDatos, Y_etiqueta, test_size=0.2, random_state=4)
+    print ('Set de Entrenamiento:', X_train.shape,  y_train.shape)
+    print ('Set de Prueba:', X_test.shape,  y_test.shape)
+    
+    ############################################################################
+    mean_acc = np.zeros((Ks-1))
+    std_acc = np.zeros((Ks-1))
+    ConfustionMx = [];
+    for n in range(1,Ks):
+
+        #Entrenar el Modelo y Predecir  
+        neigh = KNeighborsClassifier(n_neighbors = n).fit(X_train,y_train)
+        yhat=neigh.predict(X_test)
+        mean_acc[n-1] = metrics.accuracy_score(y_test, yhat)
+
+
+        std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+    ##########################################################################333
+    plt.plot(range(1,Ks),mean_acc,'g')
+    plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+    plt.legend(('Certeza ', '+/- 3xstd'))
+    plt.ylabel('Certeza ')
+    plt.xlabel('Número de Vecinos (K)')
+    plt.tight_layout()
+    plt.show()
+    ##########################################################################
+    print( "La mejor aproximación de certeza fue con ", mean_acc.max(), "con k=", mean_acc.argmax()+1)
+
+    ##############################################################################
+    k=mean_acc.argmax()+1
+    neigh = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+    #############################################################################
+    yhat = neigh.predict(X_test)
+    #########################################################################
+    
+    print("Entrenar el set de Certeza: ", metrics.accuracy_score(y_train, neigh.predict(X_train)))
+    print("Probar el set de Certeza: ", metrics.accuracy_score(y_test, yhat))
+    with open('mimejorvecino.pkl', 'wb') as model_file:
+        pickle.dump(neigh, model_file)
+    return neigh
         
         
+def UsarModeloMiMejorVecino(RutadelModelo,df):
+    columnas=df.select_dtypes(include=['float64', 'int','int64']).columns.values
+    XDatos=df[columnas]
+    XDatos = preprocessing.StandardScaler().fit(XDatos).transform(XDatos.astype(float))
+    with open(RutadelModelo, 'rb') as model_file:
+        ModeloLeido = pickle.load(model_file)
+        PrediccionLeido=ModeloLeido.predict(XDatos)
+        print('parametros del modelo:')
+        print(ModeloLeido.get_params(deep=True))
+    return pd.concat([df,pd.DataFrame({"Prediccion":PrediccionLeido})],axis=1)
