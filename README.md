@@ -30,6 +30,10 @@ CienciaDeDatosFacil es una biblioteca de Python que simplifica el análisis de d
 ### Instalación de Dependencias
 
 ```bash
+# Opción 1: Usar requirements.txt (recomendado)
+pip install -r requirements.txt
+
+# Opción 2: Instalar manualmente
 pip install pandas numpy matplotlib seaborn scikit-learn scipy statsmodels
 ```
 
@@ -38,7 +42,11 @@ pip install pandas numpy matplotlib seaborn scikit-learn scipy statsmodels
 Simplemente descarga `CienciaNoLineal.py` y colócalo en tu proyecto:
 
 ```python
-from CienciaNoLineal import *
+# Opción 1: Importar funciones específicas
+from CienciaNoLineal import Graficar_Distribucion, graficar_correlacion, AplicarModeloNolineal
+
+# Opción 2: Importar el módulo completo
+import CienciaNoLineal as cnl
 ```
 
 ## 📖 Guía de Uso
@@ -157,7 +165,12 @@ UsarModeloMiMejorVecino(
 
 ```python
 import pandas as pd
-from CienciaNoLineal import *
+from CienciaNoLineal import (
+    Graficar_Distribucion,
+    graficar_correlacion,
+    ver_correlacion,
+    AplicarModeloNolineal
+)
 
 # Cargar datos
 df = pd.read_csv('datos.csv')
@@ -184,7 +197,7 @@ AplicarModeloNolineal(
 
 ```python
 import pandas as pd
-from CienciaNoLineal import *
+from CienciaNoLineal import MiMejorVecino, UsarModeloMiMejorVecino
 
 # Cargar datos de entrenamiento
 df_train = pd.read_csv('datos_entrenamiento.csv')

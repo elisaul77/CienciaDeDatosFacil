@@ -92,6 +92,10 @@ Las sugerencias de mejoras también se manejan como GitHub Issues. Para sugerir 
 
 5. **Instala dependencias**
    ```bash
+   # Instalar dependencias desde requirements.txt
+   pip install -r requirements.txt
+   
+   # O instalar dependencias de desarrollo
    pip install pandas numpy matplotlib seaborn scikit-learn scipy statsmodels
    pip install pytest black flake8  # Herramientas de desarrollo
    ```

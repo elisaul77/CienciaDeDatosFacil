@@ -262,4 +262,4 @@ Cada contribución, sin importar su tamaño, tiene un impacto real en:
 
 ---
 
-*Última actualización: Noviembre 2025*
+*Última actualización: Noviembre 2024*
